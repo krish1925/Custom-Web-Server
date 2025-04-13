@@ -1,34 +1,34 @@
-//
-// session.h
-// ~~~~~~~~~~~~~~~~~~~~~~~~~
-//
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
 #ifndef SESSION_H
 #define SESSION_H
 
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <string>
 
 using boost::asio::ip::tcp;
 
-class session
+class Session
 {
 public:
-    explicit session(boost::asio::io_service &io_service);
+    Session(boost::asio::io_service &io_service);
+    ~Session();
+
     tcp::socket &socket();
     void start();
 
 private:
-    void handle_read(const boost::system::error_code &error, std::size_t bytes_transferred);
+    void handle_read(const boost::system::error_code &error,
+                     size_t bytes_transferred);
     void handle_write(const boost::system::error_code &error);
+
     tcp::socket socket_;
     enum
     {
-        max_length = 1024
+        max_length = 8192
     };
     char data_[max_length];
+    std::string request_buffer_;
 };
+
 #endif // SESSION_H
