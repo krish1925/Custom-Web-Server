@@ -8,6 +8,7 @@ WORKDIR /usr/src/project/build
 
 # Build and test
 RUN cmake ..
+
 RUN make
 RUN ctest --output-on_failure
 
@@ -16,16 +17,21 @@ RUN ctest --output-on_failure
 # Define deploy stage
 FROM ubuntu:noble as deploy
 
+RUN mkdir -p /etc/webserver
 # TODO(!): Copy server output binary to "."
-# COPY --from=builder /usr/src/project/build/bin/example_server .
+COPY --from=builder /usr/src/project/build/bin/webserver .
+
+# creating a config file for the server:
+RUN echo "port 8080;" > /etc/webserver/server_config
+
 
 # TODO(!): Expose some port(s)
-# EXPOSE 80
+EXPOSE 8080
 
 # Use ENTRYPOINT to specify the binary name
 # TODO(!): Update with real server name
-# ENTRYPOINT ["./example_server"]
+ENTRYPOINT ["./webserver"]
 
 # Use CMD to specify arguments to ENTRYPOINT
 # TODO(!): Update with real server args
-# CMD [""]
+CMD ["/etc/webserver/server_config"]
