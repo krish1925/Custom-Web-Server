@@ -106,16 +106,22 @@ docker build -f docker/Dockerfile \
 
 ### 4. Run the Server in a Container
 
-Before running, make sure you've updated the Dockerfile with:
+Build the base container:
 
-- The actual server binary name
-- Correct `EXPOSE` port
-- Proper `ENTRYPOINT` and `CMD` lines
+```bash
+docker build -f docker/base.Dockerfile -t vibe-code-only:base .
+```
+
+Build the server container:
+
+```bash
+docker build -f docker/Dockerfile -t vibe-code-only:latest .
+```
 
 Then run the container:
 
 ```bash
-docker run -p 8080:8080 gcr.io/<your-project-id>/vibe-code-only:latest
+docker run -p 8080:8080 vibe-code-only:latest
 ```
 
 ---
