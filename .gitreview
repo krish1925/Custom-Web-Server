@@ -1,0 +1,5 @@
+[gerrit]
+host=code.cs130.org
+port=29418
+project=vibe-code-only
+defaultbranch=main
