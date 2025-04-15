@@ -16,18 +16,18 @@ RUN ctest --output-on_failure
 # Define deploy stage
 FROM ubuntu:noble as deploy
 
-# Copy server output binary from builder stage
+# TODO(!): Copy server output binary to "."
 COPY --from=builder /usr/src/project/build/bin/webserver .
+COPY --from=builder /usr/src/project/config/gcloud_config /etc/webserver/config
 
-# Create a directory for config files
-RUN mkdir -p /etc/webserver
-
-# Expose port 8080 for development
+# TODO(!): Expose some port(s)
 EXPOSE 8080
 EXPOSE 80
 
 # Use ENTRYPOINT to specify the binary name
+# TODO(!): Update with real server name
 ENTRYPOINT ["./webserver"]
 
 # Use CMD to specify arguments to ENTRYPOINT
-CMD ["/etc/webserver/server_config"]
+# TODO(!): Update with real server args
+CMD ["/etc/webserver/config"]
