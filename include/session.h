@@ -29,6 +29,7 @@ private:
     };
     char data_[max_length];
     std::string request_buffer_;
+    bool should_close_connection_;
 };
 
 #endif // SESSION_H
