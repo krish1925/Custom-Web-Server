@@ -126,6 +126,35 @@ docker run -p 8080:8080 vibe-code-only:latest
 
 ---
 
+## How to Re-Deploy the Build
+
+### To Re-Run the Build
+You can manually trigger a new build in Google Cloud Build at any time:
+
+- Go to the Cloud Build Triggers page.
+- Find the trigger you set up (likely named something like `vibe-code-only-main-submit`).
+- Click the **Run** button next to the trigger to start a build manually.
+- The build will run the steps defined in your `docker/cloudbuild.yaml` file (compiling, testing, etc.).
+
+Alternatively, any new push to the `main` branch (via Gerrit → mirrored repo) will also automatically trigger a new build.
+
+### Where to Read Logs
+To check the logs for your most recent or any past build:
+
+- Go to the Cloud Build History page.
+- You’ll see a list of builds — each row shows the status (e.g., success or failure).
+- Click on any build ID (the hash) to see detailed logs.
+- The logs are divided by steps, which match each command in your `cloudbuild.yaml`:
+  - Example steps: *Build and test*, *Run unit tests*, *Generate coverage report*, etc.
+- If you added test coverage generation, the coverage summary will appear in the final step’s logs (look for lines after **Generating coverage report**).
+
+### Tips
+- If a build fails, the log will show which step failed and the exact error message.
+- If you don’t see your latest code in the build, make sure the push to `main` was mirrored from Gerrit to Cloud Source Repos or GitHub (depending on your setup).
+- You can filter the history view by status or branch if needed.
+
+---
+
 ## Additional Notes
 
 - **Debug Builds:**  
