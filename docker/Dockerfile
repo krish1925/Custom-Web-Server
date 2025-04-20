@@ -9,10 +9,6 @@ WORKDIR /usr/src/project/build
 # Build and test
 RUN cmake ..
 RUN make
-# Build the test executable specifically
-RUN make webserver_test
-
-# Run any CTest-based tests
 RUN ctest --output-on_failure
 
 

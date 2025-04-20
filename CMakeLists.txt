@@ -47,3 +47,6 @@ target_link_libraries(webserver server_lib config_parser_lib Boost::system)
 add_executable(webserver_test tests/webserver_test.cc)
 target_link_libraries(webserver_test server_lib config_parser_lib Boost::system gtest)
 gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+include(cmake/CodeCoverageReportConfig.cmake)
+generate_coverage_report(TARGETS webserver server_lib config_parser_lib TESTS webserver_test)
