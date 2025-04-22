@@ -1,49 +1,33 @@
 steps:
-  - name: "gcr.io/cloud-builders/docker"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        docker pull gcr.io/$PROJECT_ID/vibe-code-only:base || exit 0
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "-f",
-        "docker/base.Dockerfile",
-        "-t",
-        "vibe-code-only:base",
-        "-t",
-        "gcr.io/$PROJECT_ID/vibe-code-only:base",
-        "--cache-from",
-        "gcr.io/$PROJECT_ID/vibe-code-only:base",
-        ".",
-      ]
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/vibe-code-only:base"]
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "-f",
-        "docker/Dockerfile",
-        "-t",
-        "gcr.io/$PROJECT_ID/vibe-code-only:latest",
-        ".",
-      ]
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "-f",
-        "docker/coverage.Dockerfile",
-        "-t",
-        "vibe-code-only:coverage",
-        ".",
-      ]
-
-images:
-  [
-    "gcr.io/$PROJECT_ID/vibe-code-only:base",
-    "gcr.io/$PROJECT_ID/vibe-code-only:latest",
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker pull gcr.io/$PROJECT_ID/vibe-code-only:base || exit 0
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/base.Dockerfile',
+    '-t', 'vibe-code-only:base',
+    '-t', 'gcr.io/$PROJECT_ID/vibe-code-only:base',
+    '--cache-from', 'gcr.io/$PROJECT_ID/vibe-code-only:base',
+    '.'
   ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/vibe-code-only:base']
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/Dockerfile',
+    '-t', 'gcr.io/$PROJECT_ID/vibe-code-only:latest',
+    '.'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/coverage.Dockerfile',
+    '-t', 'vibe-code-only:coverage',
+    '.'
+  ]
+images: ['gcr.io/$PROJECT_ID/vibe-code-only:base', 'gcr.io/$PROJECT_ID/vibe-code-only:latest']
