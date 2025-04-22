@@ -3,3 +3,7 @@
 build
 build_*
 mirror
+coverage_report
+concat.sh
+out.txt
+

@@ -3,7 +3,18 @@
 
 Server::Server(boost::asio::io_service &io_service, short port)
     : io_service_(io_service),
-      acceptor_(io_service, tcp::endpoint(tcp::v4(), port))
+      acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
+      response_handler_(std::make_shared<EchoResponseHandler>())
+{
+    std::cout << "Server starting on port " << port << std::endl;
+    start_accept();
+}
+
+Server::Server(boost::asio::io_service &io_service, short port,
+               std::shared_ptr<IResponseHandler> response_handler)
+    : io_service_(io_service),
+      acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
+      response_handler_(response_handler)
 {
     std::cout << "Server starting on port " << port << std::endl;
     start_accept();
@@ -11,7 +22,7 @@ Server::Server(boost::asio::io_service &io_service, short port)
 
 void Server::start_accept()
 {
-    Session *new_session = new Session(io_service_);
+    Session *new_session = new Session(io_service_, response_handler_);
     acceptor_.async_accept(new_session->socket(),
                            boost::bind(&Server::handle_accept, this, new_session,
                                        boost::asio::placeholders::error));
