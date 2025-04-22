@@ -30,7 +30,7 @@ echo "Running unit tests"
 docker run --rm --entrypoint /usr/local/bin/webserver_test vibe-code-only:latest
 
 echo "Starting server container"
-CID=$(docker run -d -p 8080:8080 \
+CID=$(docker run -d -p 8080:80 \
   -v "$(pwd)/config/production_config:/etc/webserver/server_config:ro" \
   vibe-code-only:latest)
 

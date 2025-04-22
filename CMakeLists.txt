@@ -37,16 +37,32 @@ include_directories(include)
 # Server libraries
 add_library(server_lib src/session.cc src/server.cc)
 add_library(config_parser_lib src/config_parser.cc)
+add_library(config_manager_lib src/config_manager.cc)
 target_link_libraries(server_lib Boost::system)
 
 # Main webserver executable
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib config_parser_lib Boost::system)
+target_link_libraries(webserver server_lib config_parser_lib config_manager_lib Boost::system)
 
 # Adding webserver test - using gtest but not gtest_main
 add_executable(webserver_test tests/webserver_test.cc)
-target_link_libraries(webserver_test server_lib config_parser_lib Boost::system gtest)
+target_link_libraries(webserver_test server_lib config_parser_lib config_manager_lib Boost::system gtest)
 gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
+# Config manager test
+add_executable(config_manager_test tests/config_manager_test.cc)
+target_link_libraries(config_manager_test config_parser_lib config_manager_lib gtest gtest_main)
+gtest_discover_tests(config_manager_test)
+
+# Session test
+add_executable(session_test tests/session_test.cc)
+target_link_libraries(session_test server_lib Boost::system gtest gtest_main)
+gtest_discover_tests(session_test)
+
+# Server test
+add_executable(server_test tests/server_test.cc)
+target_link_libraries(server_test server_lib Boost::system gtest gtest_main)
+gtest_discover_tests(server_test)
+
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS webserver server_lib config_parser_lib TESTS webserver_test)
+generate_coverage_report(TARGETS webserver server_lib config_parser_lib config_manager_lib TESTS webserver_test config_manager_test session_test server_test)
