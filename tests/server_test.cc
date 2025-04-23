@@ -25,10 +25,8 @@ public:
     TestableServer2(boost::asio::io_service &io_service, short port)
         : Server(io_service, port), start_accept_called(false) {}
 
-    // Expose handle_accept for direct testing
     using Server::handle_accept;
 
-    // Override start_accept to track calls
     void start_accept() override
     {
         start_accept_called = true;
@@ -108,14 +106,11 @@ TEST_F(ServerTest, HandleAcceptWithoutError)
     boost::asio::io_service io_service;
     TestableServer2 server(io_service, 8080);
 
-    // Create a mock session
     MockSession *session = new MockSession(io_service);
 
-    // Call handle_accept with no error
     boost::system::error_code no_error;
     server.handle_accept(session, no_error);
 
-    // Verify start_accept was called
     EXPECT_TRUE(server.start_accept_called);
 }
 
@@ -124,25 +119,15 @@ TEST_F(ServerTest, HandleAcceptWithError)
     boost::asio::io_service io_service;
     TestableServer2 server(io_service, 8080);
 
-    // Create a mock session that tracks deletion
-    bool session_deleted = false;
     MockSession *session = new MockSession(io_service);
-
-    // No expectation for start() - it should not be called
 
     // Call handle_accept with an error
     boost::system::error_code error = boost::asio::error::connection_refused;
 
-    // We need to intercept the deletion since we can't mock destructors reliably
-    // This is a bit tricky - we'll need to catch the delete operation
-
-    // For this test, we'll have to rely on valgrind or similar tools
-    // to verify there's no memory leak when running the tests
+    // We can't directly verify session was deleted,
+    // but memory leak detectors will catch it if it wasn't
     server.handle_accept(session, error);
 
     // Verify start_accept was called even with the error
     EXPECT_TRUE(server.start_accept_called);
-
-    // Note: we can't directly verify session was deleted,
-    // but memory leak detectors will catch it if it wasn't
 }
