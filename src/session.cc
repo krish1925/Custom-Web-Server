@@ -64,7 +64,7 @@ void Session::handle_read(const boost::system::error_code &error,
     }
     else
     {
-        delete this;
+        destroy();
     }
 }
 
@@ -77,7 +77,7 @@ void Session::handle_write(const boost::system::error_code &error)
             // Close the connection only if requested by client
             boost::system::error_code ignored_ec;
             socket_.shutdown(tcp::socket::shutdown_both, ignored_ec);
-            delete this;
+            destroy();
             return;
         }
 
@@ -92,7 +92,7 @@ void Session::handle_write(const boost::system::error_code &error)
     }
     else
     {
-        delete this;
+        destroy();
     }
 }
 

@@ -39,7 +39,7 @@ public:
     bool Parse(std::istream *config_file, NginxConfig *config);
     bool Parse(const char *file_name, NginxConfig *config);
 
-private:
+    // Moved to public for testing purposes
     enum TokenType
     {
         TOKEN_TYPE_START = 0,
@@ -52,7 +52,9 @@ private:
         TOKEN_TYPE_ERROR = 7
     };
     const char *TokenTypeAsString(TokenType type);
+    TokenType ParseToken(std::istream *input, std::string *value);
 
+private:
     enum TokenParserState
     {
         TOKEN_STATE_INITIAL_WHITESPACE = 0,
@@ -61,8 +63,6 @@ private:
         TOKEN_STATE_TOKEN_TYPE_COMMENT = 3,
         TOKEN_STATE_TOKEN_TYPE_NORMAL = 4
     };
-
-    TokenType ParseToken(std::istream *input, std::string *value);
 };
 
 #endif // CONFIG_PARSER_H
