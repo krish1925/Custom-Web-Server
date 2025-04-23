@@ -79,6 +79,7 @@ TEST_F(ConfigManagerTest, NestedPort) {
   // Currently ConfigManager doesn't search nested blocks so this should return the default port
   EXPECT_EQ(ConfigManager::DEFAULT_PORT, config_manager.getPort());
 }
+
 // Test port value 0 (invalid range)
 TEST_F(ConfigManagerTest, InvalidZeroPort) {
     std::string config_str = "port 0;";

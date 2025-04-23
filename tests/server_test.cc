@@ -32,24 +32,31 @@ public:
         }
     }
 };
+
 class ServerTest : public ::testing::Test {
-  protected:
-      boost::asio::io_service io_service_; 
-      std::shared_ptr<MockResponseHandlerForServer> mock_handler_; // Mock response handler for testing
-  
-      void SetUp() override {
-          mock_handler_ = std::make_shared<MockResponseHandlerForServer>();
-      }
-  };
-  
-  TEST_F(ServerTest, HandleAcceptErrorPath) {
-      short port = 8081; 
-      TestableServer test_server(io_service_, port, mock_handler_); 
-  
-      Session* dummy_session = new Session(io_service_, mock_handler_); // Create dummy session for testing
-      boost::system::error_code ec = boost::asio::error::operation_aborted; 
-  
-      test_server.handle_accept(dummy_session, ec); // Call handle_accept with dummy session and error code
-  
-      EXPECT_TRUE(test_server.error_path_taken); // Verify that error path was taken as expected
-  }
+protected:
+    boost::asio::io_service io_service_; 
+    std::shared_ptr<MockResponseHandlerForServer> mock_handler_; // Mock response handler for testing
+
+    void SetUp() override {
+        mock_handler_ = std::make_shared<MockResponseHandlerForServer>();
+    }
+};
+
+// Test server initialization with valid port
+TEST_F(ServerTest, InitializationWithValidPort) {
+    short port = 8080;
+    EXPECT_NO_THROW(Server server(io_service_, port));
+}
+
+TEST_F(ServerTest, HandleAcceptErrorPath) {
+    short port = 8081; 
+    TestableServer test_server(io_service_, port, mock_handler_); 
+
+    Session* dummy_session = new Session(io_service_, mock_handler_); // Create dummy session for testing
+    boost::system::error_code ec = boost::asio::error::operation_aborted; 
+
+    test_server.handle_accept(dummy_session, ec); // Call handle_accept with dummy session and error code
+
+    EXPECT_TRUE(test_server.error_path_taken); // Verify that error path was taken as expected
+}
