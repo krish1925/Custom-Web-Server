@@ -13,33 +13,38 @@ using boost::asio::ip::tcp;
 class IResponseHandler;
 
 // Session class that handles client connections
-class Session
-{
+class Session {
 public:
-    // Constructor with dependency injection for io_service
+    // Constructor with io_service for production
     Session(boost::asio::io_service &io_service);
-    
-    // Constructor with dependency injection for testing
+
+    // Constructor for testing with injected response handler
     Session(boost::asio::io_service &io_service, 
             std::shared_ptr<IResponseHandler> response_handler);
-    
+
     virtual ~Session();
 
-    // Get socket reference
+    // Get the socket reference
     virtual tcp::socket &socket();
-    
+
     // Start the session
     virtual void start();
 
 protected:
-    // made protected for testing
+    // Read handler
     virtual void handle_read(const boost::system::error_code &error,
-                     size_t bytes_transferred);
+                             size_t bytes_transferred);
+
+    // Write handler
     virtual void handle_write(const boost::system::error_code &error);
 
+    // Virtual method for clean object deletion (overridable for test safety)
+    virtual void destroy() {
+        delete this;
+    }
+
     tcp::socket socket_;
-    enum
-    {
+    enum {
         max_length = 8192
     };
     char data_[max_length];
@@ -48,19 +53,18 @@ protected:
     std::shared_ptr<IResponseHandler> response_handler_;
 };
 
-// interface for response handling
+// Interface for response generation
 class IResponseHandler {
 public:
     virtual ~IResponseHandler() {}
-    
-    // generate HTTP response from request
+
+    // Generate response and decide connection persistence
     virtual std::string generateResponse(const std::string& request, bool& should_close) = 0;
 };
 
-// default implementation of response handler
+// Default echo implementation
 class EchoResponseHandler : public IResponseHandler {
 public:
-    // generate a simple echo response
     std::string generateResponse(const std::string& request, bool& should_close) override;
 };
 
