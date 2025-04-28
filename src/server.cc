@@ -1,5 +1,6 @@
 #include "server.h"
 #include <iostream>
+#include "echo_response_handler.h"
 
 Server::Server(boost::asio::io_service &io_service, short port)
     : io_service_(io_service),

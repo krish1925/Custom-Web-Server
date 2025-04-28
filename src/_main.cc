@@ -1,4 +1,3 @@
-#include <iostream>
 #include <boost/asio.hpp>
 #include "server.h"
 #include "config_parser.h"
@@ -23,11 +22,11 @@ int main(int argc, char *argv[])
         }
 
         boost::asio::io_service io_service;
-        
+
         // Use ConfigManager to extract port
         ConfigManager config_manager(config);
         int port = config_manager.getPort();
-        
+
         // Create and run the server
         Server server(io_service, static_cast<short>(port));
         io_service.run();
