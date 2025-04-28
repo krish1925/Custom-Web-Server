@@ -6,6 +6,7 @@
 class EchoResponseHandler : public IResponseHandler
 {
 public:
+    virtual ~EchoResponseHandler() override;
     // generate a simple echo response
     std::string generateResponse(const std::string &request, bool &should_close) override;
 };

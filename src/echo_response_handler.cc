@@ -1,5 +1,7 @@
 #include "echo_response_handler.h"
 
+EchoResponseHandler::~EchoResponseHandler() {}
+
 std::string EchoResponseHandler::generateResponse(const std::string &request, bool &should_close)
 {
     // Check if the request header contains "Connection: close"
