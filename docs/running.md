@@ -8,59 +8,126 @@ This document explains how to build, run, and use the web server provided in the
 - **Boost Library** (version 1.50 or later) with static libraries
 - **GoogleTest** (installed in `/usr/src/googletest`) for running unit tests
 - A C++ compiler with C++11 support or later
-- Docker (optional) for containerized building and deployment
+- Docker (recommended) for containerized building and deployment
 
-## Building the Server
+## Running the Server
 
-### 1. Create a Build Directory
-To avoid cluttering the source directory with build artifacts, create and switch to a new build directory:
+The recommended way to run the server is with Docker. Alternatively, you can manually build and run it without Docker.
+
+### Running with Docker (Default)
+
+Docker handles the CMake configuration, building, and execution steps for you. To run the server in a container:
+
+First, build the base container:
+
+```bash
+docker build \
+  -f docker/base.Dockerfile \
+  -t vibe-code-only:base \
+  .
+```
+
+Then build the server container:
+
+```bash
+docker build \
+  -f docker/Dockerfile \
+  -t vibe-code-only:latest \
+  .
+```
+
+Finally, run the container:
+
+```bash
+docker run \
+  -p 80:80 \
+  vibe-code-only:latest
+```
+
+**Testing the Server:**
+
+Once the server is running, verify it by checking the port:
+
+```bash
+nc -zv localhost 80
+```
+
+A successful connection confirms the server is active.
+
+**Stopping the Server:**
+
+To stop the running server container:
+
+1. List running containers and find the container ID:
+
+```bash
+docker ps
+```
+
+2. Stop the container using its ID:
+
+```bash
+docker stop <container-id>
+```
+
+### Building and Running Without Docker (Alternative)
+
+If you prefer not to use Docker, you can build and run the server manually.
+
+#### 1. Create a Build Directory
+To avoid cluttering the source directory with build artifacts:
 
 ```bash
 mkdir build
 cd build
 ```
 
-### 2. Configure the Project
-Run CMake from the build directory to set up the build configuration:
+#### 2. Configure the Project
+Run CMake to set up the build configuration:
 
 ```bash
 cmake ..
 ```
 
-### 3. Build the Project
-Compile the source code by executing:
+#### 3. Build the Project
+Compile the source code:
 
 ```bash
 make
 ```
 
-### 4. Run Tests (Optional)
-If tests are configured, run them to ensure your build is working as expected:
+#### 4. (Optional) Run Tests
+Run tests to verify your build:
 
 ```bash
 ctest --output-on_failure
 ```
 
-## Running the Server
-
-The compiled server executable (e.g., `webserver`) requires a configuration file as an argument. The configuration file should specify the server port, among other settings.
-
-### Run the Server with a Configuration File
-Execute the server binary, providing the path to your configuration file:
+#### 5. Run the Server
+After building, execute the server binary with your configuration file:
 
 ```bash
 ./bin/webserver /path/to/config/file
 ```
 
 **Configuration File Guidelines:**
+- The file must include at least one statement specifying the port, e.g.:
 
-- The file must include at least one statement specifying the port using a format similar to:
-  
   ```
-  port 8080;
+  port 80;
   ```
 
-- If a valid port is not provided, the server defaults to port `8080`.
+- If a valid port is not provided, the server defaults to port `80`.
+
+**Testing the Server:**
+
+After starting the server, verify it is running:
+
+```bash
+nc -zv localhost 80
+```
+
+---
 
 ## Using the Server
 
@@ -69,60 +136,6 @@ Execute the server binary, providing the path to your configuration file:
 
 - **Logging:**  
   Important events—such as server startup, port details, and errors—are printed to the console.
-
----
-
-## Docker Instructions
-
-This project supports Docker for both building and deploying the server.
-
-### 1. Build the Base Image
-
-This builds the Docker image used as the base for building the server.
-
-```bash
-docker build -f docker/base.Dockerfile \
-  -t vibe-code-only:base \
-  -t gcr.io/<your-project-id>/vibe-code-only:base \
-  --cache-from gcr.io/<your-project-id>/vibe-code-only:base \
-  .
-```
-
-### 2. Push the Base Image (Optional)
-
-If you're using Google Cloud Build:
-
-```bash
-docker push gcr.io/<your-project-id>/vibe-code-only:base
-```
-
-### 3. Build the Final Server Image
-
-```bash
-docker build -f docker/Dockerfile \
-  -t gcr.io/<your-project-id>/vibe-code-only:latest \
-  .
-```
-
-### 4. Run the Server in a Container
-
-Build the base container:
-
-```bash
-docker build -f docker/base.Dockerfile -t vibe-code-only:base .
-```
-
-Build the server container:
-
-```bash
-docker build -f docker/Dockerfile -t vibe-code-only:latest .
-```
-
-Then run the container:
-
-```bash
-docker run -p 8080:8080 vibe-code-only:latest
-```
 
 ---
 
