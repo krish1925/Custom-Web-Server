@@ -1,8 +1,15 @@
 #include "echo_handler.h"
 #include "response.h"
+#include "logging.h"
 
 Response EchoHandler::handle(const Request& req)
 {
+    BOOST_LOG_TRIVIAL(info)  << "[EchoHandler] Handling request";
+    BOOST_LOG_TRIVIAL(debug) << "[EchoHandler] Request URI: " << req.uri
+                             << ", method: " << req.method
+                             << ", client_ip: " << req.client_ip
+                             << ", size: " << req.raw.size();
+
     Response res;
 
     // 1. Status line

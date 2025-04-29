@@ -5,6 +5,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <iostream>
+#include "logging.h"
 
 namespace fs = std::filesystem;
 
@@ -52,6 +53,10 @@ StaticFileHandler::StaticFileHandler(std::string url_prefix,
 
 Response StaticFileHandler::handle(const Request& req)
 {
+    BOOST_LOG_TRIVIAL(info) << "[StaticFileHandler] Serving request"
+                            << " uri=" << req.uri
+                            << " prefix=" << prefix_
+                            << " root="   << root_;
     Response res;
 
     /* 1. Strip the URL prefix. */

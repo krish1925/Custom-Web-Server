@@ -7,6 +7,7 @@
 // How Nginx does it:
 //   http://lxr.nginx.org/source/src/core/ngx_conf_file.c
 
+#include "logging.h"
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -19,6 +20,7 @@
 
 std::string NginxConfig::ToString(int depth)
 {
+    BOOST_LOG_TRIVIAL(debug) << "[ConfigParser] Serializing entire config at depth " << depth;
     std::string serialized_config;
     for (const auto &statement : statements_)
     {
@@ -29,6 +31,7 @@ std::string NginxConfig::ToString(int depth)
 
 std::string NginxConfigStatement::ToString(int depth)
 {
+    BOOST_LOG_TRIVIAL(debug) << "[ConfigParser] Serializing statement at depth " << depth;
     std::string serialized_statement;
     for (int i = 0; i < depth; ++i)
     {
@@ -64,25 +67,25 @@ const char *NginxConfigParser::TokenTypeAsString(TokenType type)
 {
     switch (type)
     {
-    case TOKEN_TYPE_START:
-        return "TOKEN_TYPE_START";
-    case TOKEN_TYPE_NORMAL:
-        return "TOKEN_TYPE_NORMAL";
-    case TOKEN_TYPE_START_BLOCK:
-        return "TOKEN_TYPE_START_BLOCK";
-    case TOKEN_TYPE_END_BLOCK:
-        return "TOKEN_TYPE_END_BLOCK";
-    case TOKEN_TYPE_COMMENT:
-        return "TOKEN_TYPE_COMMENT";
-    case TOKEN_TYPE_STATEMENT_END:
-        return "TOKEN_TYPE_STATEMENT_END";
-    case TOKEN_TYPE_EOF:
-        return "TOKEN_TYPE_EOF";
-    case TOKEN_TYPE_ERROR:
-        return "TOKEN_TYPE_ERROR";
-    default:
-        return "Unknown token type";
-    }
+      case TOKEN_TYPE_START:
+          return "TOKEN_TYPE_START";
+      case TOKEN_TYPE_NORMAL:
+          return "TOKEN_TYPE_NORMAL";
+      case TOKEN_TYPE_START_BLOCK:
+          return "TOKEN_TYPE_START_BLOCK";
+      case TOKEN_TYPE_END_BLOCK:
+          return "TOKEN_TYPE_END_BLOCK";
+      case TOKEN_TYPE_COMMENT:
+          return "TOKEN_TYPE_COMMENT";
+      case TOKEN_TYPE_STATEMENT_END:
+          return "TOKEN_TYPE_STATEMENT_END";
+      case TOKEN_TYPE_EOF:
+          return "TOKEN_TYPE_EOF";
+      case TOKEN_TYPE_ERROR:
+          return "TOKEN_TYPE_ERROR";
+      default:
+          return "Unknown token type";
+      }
 }
 
 NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream *input,
@@ -165,10 +168,11 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream *input,
         }
     }
 
-    // If we get here, we reached the end of the file.
+            // If we get here, we reached the end of the file.
     if (state == TOKEN_STATE_SINGLE_QUOTE ||
         state == TOKEN_STATE_DOUBLE_QUOTE)
     {
+        BOOST_LOG_TRIVIAL(error) << "[ConfigParser] Unterminated quote detected";
         return TOKEN_TYPE_ERROR;
     }
 
@@ -177,6 +181,7 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream *input,
 
 bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config)
 {
+    BOOST_LOG_TRIVIAL(info) << "[ConfigParser] Beginning parse of config stream";
     std::stack<NginxConfig *> config_stack;
     config_stack.push(config);
     TokenType last_token_type = TOKEN_TYPE_START;
@@ -220,7 +225,7 @@ bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config)
             }
             else
             {
-                // Error.
+              // Error.
                 break;
             }
         }
@@ -228,7 +233,7 @@ bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config)
         {
             if (last_token_type != TOKEN_TYPE_NORMAL)
             {
-                // Error.
+              // Error.
                 break;
             }
         }
@@ -260,6 +265,7 @@ bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config)
         }
         else if (token_type == TOKEN_TYPE_EOF)
         {
+            BOOST_LOG_TRIVIAL(info) << "[ConfigParser] Reached EOF successfully";
             if (last_token_type != TOKEN_TYPE_STATEMENT_END &&
                 last_token_type != TOKEN_TYPE_END_BLOCK)
             {
@@ -268,19 +274,22 @@ bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config)
             }
             if (config_stack.size() != 1)
             {
-                // Error. Unmatched braces.
+              // Error. Unmatched braces.
                 break;
             }
             return true;
         }
         else
         {
-            // Error. Unknown token.
+          // Error. Unknown token.
             break;
         }
         last_token_type = token_type;
     }
 
+    BOOST_LOG_TRIVIAL(error) << "[ConfigParser] Bad transition from "
+                             << TokenTypeAsString(last_token_type)
+                             << " to " << TokenTypeAsString(token_type);
     printf("Bad transition from %s to %s\n",
            TokenTypeAsString(last_token_type),
            TokenTypeAsString(token_type));
@@ -289,10 +298,12 @@ bool NginxConfigParser::Parse(std::istream *config_file, NginxConfig *config)
 
 bool NginxConfigParser::Parse(const char *file_name, NginxConfig *config)
 {
+    BOOST_LOG_TRIVIAL(info) << "[ConfigParser] Parsing file: " << file_name;
     std::ifstream config_file;
     config_file.open(file_name);
     if (!config_file.good())
     {
+        BOOST_LOG_TRIVIAL(error) << "[ConfigParser] Failed to open config file: " << file_name;
         printf("Failed to open config file: %s\n", file_name);
         return false;
     }
