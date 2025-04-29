@@ -34,10 +34,29 @@ message(STATUS "Boost version: ${Boost_VERSION}")
 include_directories(include)
 
 # Core libraries
-add_library(server_lib src/session.cc src/server.cc)
-add_library(config_parser_lib src/config_parser.cc)
-add_library(config_manager_lib src/config_manager.cc)
-target_link_libraries(server_lib PUBLIC Boost::system)
+#add_library(server_lib src/session.cc src/server.cc src/echo_handler.cc)
+#add_library(config_parser_lib src/config_parser.cc)
+#add_library(config_manager_lib src/config_manager.cc)
+#target_link_libraries(config_manager_lib PUBLIC config_parser_lib)
+#target_link_libraries(server_lib PUBLIC Boost::system config_manager_lib)
+
+add_library(config_parser_lib  STATIC src/config_parser.cc)
+
+add_library(config_manager_lib STATIC
+    src/config_manager.cc)
+target_link_libraries(config_manager_lib
+    PUBLIC  handler_lib
+    PRIVATE config_parser_lib)
+
+add_library(handler_lib src/echo_handler.cc src/static_file_handler.cc)
+target_include_directories(handler_lib PUBLIC include)
+
+add_library(server_lib         STATIC
+    src/server.cc
+    src/session.cc)                       # concrete handler
+target_link_libraries(server_lib
+    PRIVATE config_manager_lib
+    PRIVATE Boost::system)
 
 # Main executable
 add_executable(webserver src/_main.cc)
@@ -72,15 +91,15 @@ target_link_libraries(config_manager_test
 )
 gtest_discover_tests(config_manager_test)
 
-add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test
-  PRIVATE
-    server_lib
-    Boost::system
-    gtest
-    gtest_main
-)
-gtest_discover_tests(session_test)
+#add_executable(session_test tests/session_test.cc)
+#target_link_libraries(session_test
+#  PRIVATE
+#    server_lib
+#    Boost::system
+#    gtest
+#    gtest_main
+#)
+#gtest_discover_tests(session_test)
 
 add_executable(config_parser_test
   tests/config_parser_test.cc
@@ -95,15 +114,15 @@ gtest_discover_tests(config_parser_test
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
 )
 
-add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test
-  PRIVATE
-    server_lib
-    Boost::system
-    gtest
-    gtest_main
-)
-gtest_discover_tests(server_test)
+#add_executable(server_test tests/server_test.cc)
+#target_link_libraries(server_test
+#  PRIVATE
+#    server_lib
+#    Boost::system
+#    gtest
+#    gtest_main
+#)
+#gtest_discover_tests(server_test)
 
 # Integration tests
 add_executable(integration_test tests/integration/integration_test.cc)

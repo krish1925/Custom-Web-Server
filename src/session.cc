@@ -1,102 +1,88 @@
 #include "session.h"
+#include "request_handler.h"
+#include <boost/asio.hpp>
+#include <boost/bind/bind.hpp>
+#include <sstream>
 #include <iostream>
 
-Session::Session(boost::asio::io_service &io_service)
-    : socket_(io_service), 
-      should_close_connection_(false),
-      response_handler_(std::make_shared<EchoResponseHandler>())
-{
-}
-
-Session::Session(boost::asio::io_service &io_service, 
-                 std::shared_ptr<IResponseHandler> response_handler)
-    : socket_(io_service), 
-      should_close_connection_(false),
-      response_handler_(response_handler)
-{
-}
-
-Session::~Session()
-{
-}
-
-tcp::socket &Session::socket()
-{
-    return socket_;
-}
+Session::Session(boost::asio::io_service& io,
+                 const ConfigManager& config)
+  : socket_(io), cfg_(config) {}
 
 void Session::start()
 {
     socket_.async_read_some(boost::asio::buffer(data_, max_length),
-                            boost::bind(&Session::handle_read, this,
-                                        boost::asio::placeholders::error,
-                                        boost::asio::placeholders::bytes_transferred));
+        boost::bind(&Session::handle_read, this,
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));
 }
 
-void Session::handle_read(const boost::system::error_code &error,
-                          size_t bytes_transferred)
+void Session::handle_read(const boost::system::error_code& ec,
+                          size_t n)
 {
-    if (!error)
-    {
-        // Append the new data to the request buffer
-        request_buffer_.append(data_, bytes_transferred);
+    if (ec) { return; }
 
-        // Check if the request is complete (look for "\r\n\r\n" which marks end of HTTP headers)
-        if (request_buffer_.find("\r\n\r\n") != std::string::npos)
-        {
-            // Pass off to the response handler
-            std::string response = response_handler_->generateResponse(request_buffer_, should_close_connection_);
+    buffer_.append(data_, n);
 
-            // Send the response
-            boost::asio::async_write(socket_,
-                                     boost::asio::buffer(response),
-                                     boost::bind(&Session::handle_write, this,
-                                                 boost::asio::placeholders::error));
+    std::cout << "[Session] Received " << n << " bytes\n";
+    std::cout << "[Session] Chunk: \""
+              << std::string(data_, data_ + n)
+              << "\"\n";
+    std::cout << "[Session] Buffer: \"" << buffer_ << "\"\n";
 
-            return;
-        }
 
-        // If we haven't received the complete request, read more data
+    if (buffer_.find("\r\n\r\n") == std::string::npos) {
         socket_.async_read_some(boost::asio::buffer(data_, max_length),
-                                boost::bind(&Session::handle_read, this,
-                                            boost::asio::placeholders::error,
-                                            boost::asio::placeholders::bytes_transferred));
+            boost::bind(&Session::handle_read, this,
+                        boost::asio::placeholders::error,
+                        boost::asio::placeholders::bytes_transferred));
+        std::cout << "[Session] Waiting for more data...\n";
+        return;
     }
-    else
-    {
-        destroy();
-    }
+
+    std::istringstream iss(buffer_);
+    std::string method, uri, version;
+    iss >> method >> uri >> version;
+    std::cout << "[Session] Method: " << method << "\n";
+    std::cout << "[Session] URI: " << uri << "\n";
+    std::cout << "[Session] Version: " << version << "\n";
+
+    should_close_ = (buffer_.find("Connection: close") != std::string::npos);
+
+    Request req;
+    req.raw        = buffer_;
+    req.uri        = uri;
+    req.method     = method;
+    try {
+        req.client_ip = socket_.remote_endpoint().address().to_string();
+    } catch (...) { req.client_ip = "unknown"; }
+
+    auto handler_opt = cfg_.matchHandler(uri);
+    auto handler     = handler_opt ? *handler_opt : default_echo_;
+
+    Response resp   = handler->handle(req);
+
+    boost::asio::async_write(socket_, boost::asio::buffer(resp.data),
+        boost::bind(&Session::handle_write, this,
+                    boost::asio::placeholders::error));
 }
 
-void Session::handle_write(const boost::system::error_code &error)
+void Session::handle_write(const boost::system::error_code& ec)
 {
-    if (!error)
-    {
-        if (should_close_connection_)
-        {
-            // Close the connection only if requested by client
-            boost::system::error_code ignored_ec;
-            socket_.shutdown(tcp::socket::shutdown_both, ignored_ec);
-            destroy();
-            return;
-        }
+    if (ec) return;
 
-        // Clear the buffer for the next request
-        request_buffer_.clear();
+    if (should_close_) {
+        boost::system::error_code ig;
+        socket_.shutdown(tcp::socket::shutdown_both, ig);
+        return;
+    }
 
-        // Start reading again for persistent connections
-        socket_.async_read_some(boost::asio::buffer(data_, max_length),
-                                boost::bind(&Session::handle_read, this,
-                                            boost::asio::placeholders::error,
-                                            boost::asio::placeholders::bytes_transferred));
-    }
-    else
-    {
-        destroy();
-    }
+    buffer_.clear();
+    socket_.async_read_some(boost::asio::buffer(data_, max_length),
+        boost::bind(&Session::handle_read, this,
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));
 }
-
-// Implementation of EchoResponseHandler
 std::string EchoResponseHandler::generateResponse(const std::string& request, bool& should_close) {
     // Check if the request header contains "Connection: close"
     should_close = (request.find("Connection: close") != std::string::npos);
