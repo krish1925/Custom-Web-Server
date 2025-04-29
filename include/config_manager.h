@@ -2,21 +2,29 @@
 #define CONFIG_MANAGER_H
 
 #include "config_parser.h"
-#include <string>
+#include "request_handler.h"
+#include <optional>
 
-// Class to manage configuration extraction and validation
+struct RouteEntry
+{
+    std::string prefix;
+    std::shared_ptr<IRequestHandler> handler;
+};
+
 class ConfigManager
 {
 public:
-    // Constructor takes a reference to a parsed NginxConfig
-    ConfigManager(const NginxConfig &config);
+    explicit ConfigManager(const NginxConfig &config);
 
-    // Get port from config, with validation and default fallback
     int getPort() const;
+    void loadRoutes();
+    std::optional<std::shared_ptr<IRequestHandler>> matchHandler(const std::string &uri) const;
+
+    const std::vector<RouteEntry> &routes() const;
 
 private:
-    // Reference to the parsed configuration
     const NginxConfig &config_;
+    std::vector<RouteEntry> routes_;
 };
 
-#endif // CONFIG_MANAGER_H
+#endif

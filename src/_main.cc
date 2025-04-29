@@ -14,28 +14,26 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        NginxConfigParser config_parser;
+        NginxConfigParser parser;
         NginxConfig config;
-        if (!config_parser.Parse(argv[1], &config))
+        if (!parser.Parse(argv[1], &config))
         {
-            std::cerr << "Failed to parse config file: " << argv[1] << std::endl;
+            std::cerr << "Failed to parse config file: " << argv[1] << "\n";
             return 1;
         }
 
-        boost::asio::io_service io_service;
-        
-        // Use ConfigManager to extract port
-        ConfigManager config_manager(config);
-        int port = config_manager.getPort();
-        
-        // Create and run the server
-        Server server(io_service, static_cast<short>(port));
-        io_service.run();
-    }
-    catch (std::exception &e)
-    {
-        std::cerr << "Exception: " << e.what() << "\n";
-    }
+        ConfigManager cfg(config);
+        int port = cfg.getPort();
+        cfg.loadRoutes();
 
+        boost::asio::io_service io;
+        Server server(io, static_cast<short>(port), cfg);
+        io.run();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Exception: " << e.what() << '\n';
+        return 1;
+    }
     return 0;
 }

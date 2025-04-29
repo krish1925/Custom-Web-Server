@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 #include "config_manager.h"
-#include "config_parser.h"
 #include <sstream>
 
 class ConfigManagerTest : public ::testing::Test
