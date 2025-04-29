@@ -1,7 +1,10 @@
 #include "static_file_handler.h"
-#include <string>
 
-Response StaticFileHandler::handle(const Request& req)
+StaticFileHandler::StaticFileHandler(std::string url_prefix, std::string root_dir)
+    : prefix_(std::move(url_prefix)),
+      root_(std::move(root_dir)) {}
+
+Response StaticFileHandler::handle(const Request &req)
 {
     Response res;
     res.data = std::string("STATIC_FILE_HANDLER (prefix=") + prefix_ +

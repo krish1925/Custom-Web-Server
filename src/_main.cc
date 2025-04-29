@@ -4,17 +4,20 @@
 #include "config_parser.h"
 #include "config_manager.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    try {
-        if (argc != 2) {
+    try
+    {
+        if (argc != 2)
+        {
             std::cerr << "Usage: webserver <path to config file>\n";
             return 1;
         }
 
         NginxConfigParser parser;
-        NginxConfig        config;
-        if (!parser.Parse(argv[1], &config)) {
+        NginxConfig config;
+        if (!parser.Parse(argv[1], &config))
+        {
             std::cerr << "Failed to parse config file: " << argv[1] << "\n";
             return 1;
         }
@@ -26,8 +29,9 @@ int main(int argc, char* argv[])
         boost::asio::io_service io;
         Server server(io, static_cast<short>(port), cfg);
         io.run();
-
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception &e)
+    {
         std::cerr << "Exception: " << e.what() << '\n';
         return 1;
     }

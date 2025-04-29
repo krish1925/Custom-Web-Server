@@ -1,4 +1,4 @@
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS  // for boost::bind
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS // for boost::bind
 #include <gtest/gtest.h>
 #include <boost/asio.hpp>
 #include <thread>
@@ -26,7 +26,7 @@ void runTestServer()
 
     boost::asio::io_service io_service;
     ConfigManager mgr(config);
-    Server server(io_service, static_cast<short>(mgr.getPort()));
+    Server server(io_service, static_cast<short>(mgr.getPort()), mgr);
     io_service.run();
 }
 

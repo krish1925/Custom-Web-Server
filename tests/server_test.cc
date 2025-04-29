@@ -1,16 +1,13 @@
 #include "gtest/gtest.h"
 #include "server.h"
-#include "session.h"
-#include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
-#include <memory>
 
 // Mock Session class to verify start() is called
 class MockSession : public Session
 {
 public:
-    MockSession(boost::asio::io_service &io_service)
-        : Session(io_service) {}
+    MockSession(boost::asio::io_service &io_service, ConfigManager &cfg)
+        : Session(io_service, cfg) {}
 
     // Need to override socket() to prevent pure virtual function call
     tcp::socket &socket() override { return Session::socket(); }
@@ -22,8 +19,8 @@ public:
 class TestableServer2 : public Server
 {
 public:
-    TestableServer2(boost::asio::io_service &io_service, short port)
-        : Server(io_service, port), start_accept_called(false) {}
+    TestableServer2(boost::asio::io_service &io_service, short port, ConfigManager &cfg)
+        : Server(io_service, port, cfg), start_accept_called(false) {}
 
     using Server::handle_accept;
 
@@ -74,10 +71,13 @@ class ServerTest : public ::testing::Test
 protected:
     boost::asio::io_service io_service_;
     std::shared_ptr<MockResponseHandlerForServer> mock_handler_; // Mock response handler for testing
+    std::unique_ptr<ConfigManager> config_manager_;              // Dummy config manager for testing
+    NginxConfig default_config_;                                 // Empty config for testing
 
     void SetUp() override
     {
         mock_handler_ = std::make_shared<MockResponseHandlerForServer>();
+        config_manager_ = std::make_unique<ConfigManager>(default_config_);
     }
 };
 
@@ -85,7 +85,7 @@ protected:
 TEST_F(ServerTest, InitializationWithValidPort)
 {
     short port = 8080;
-    EXPECT_NO_THROW(Server server(io_service_, port));
+    EXPECT_NO_THROW(Server server(io_service_, port, *config_manager_));
 }
 
 TEST_F(ServerTest, HandleAcceptErrorPath)
@@ -93,7 +93,7 @@ TEST_F(ServerTest, HandleAcceptErrorPath)
     short port = 8081;
     TestableServer test_server(io_service_, port, mock_handler_);
 
-    Session *dummy_session = new Session(io_service_, mock_handler_); // Create dummy session for testing
+    Session *dummy_session = new Session(io_service_, *config_manager_, mock_handler_); // Create dummy session for testing
     boost::system::error_code ec = boost::asio::error::operation_aborted;
 
     test_server.handle_accept(dummy_session, ec); // Call handle_accept with dummy session and error code
@@ -104,9 +104,9 @@ TEST_F(ServerTest, HandleAcceptErrorPath)
 TEST_F(ServerTest, HandleAcceptWithoutError)
 {
     boost::asio::io_service io_service;
-    TestableServer2 server(io_service, 8080);
+    TestableServer2 server(io_service, 8080, *config_manager_);
 
-    MockSession *session = new MockSession(io_service);
+    MockSession *session = new MockSession(io_service, *config_manager_);
 
     boost::system::error_code no_error;
     server.handle_accept(session, no_error);
@@ -117,9 +117,9 @@ TEST_F(ServerTest, HandleAcceptWithoutError)
 TEST_F(ServerTest, HandleAcceptWithError)
 {
     boost::asio::io_service io_service;
-    TestableServer2 server(io_service, 8080);
+    TestableServer2 server(io_service, 8080, *config_manager_);
 
-    MockSession *session = new MockSession(io_service);
+    MockSession *session = new MockSession(io_service, *config_manager_);
 
     // Call handle_accept with an error
     boost::system::error_code error = boost::asio::error::connection_refused;
