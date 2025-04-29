@@ -34,7 +34,7 @@ message(STATUS "Boost version: ${Boost_VERSION}")
 include_directories(include)
 
 # Core libraries
-add_library(server_lib src/session.cc src/server.cc src/echo_response_handler.cc)
+add_library(server_lib src/session.cc src/server.cc)
 add_library(config_parser_lib src/config_parser.cc)
 add_library(config_manager_lib src/config_manager.cc)
 target_link_libraries(server_lib PUBLIC Boost::system)

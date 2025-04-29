@@ -5,15 +5,21 @@
 Session::Session(boost::asio::io_service &io_service)
     : socket_(io_service),
       should_close_connection_(false),
-      response_handler_(std::make_shared<EchoResponseHandler>()) {}
+      response_handler_(std::make_shared<EchoResponseHandler>())
+{
+}
 
 Session::Session(boost::asio::io_service &io_service,
                  std::shared_ptr<IResponseHandler> response_handler)
     : socket_(io_service),
       should_close_connection_(false),
-      response_handler_(response_handler) {}
+      response_handler_(response_handler)
+{
+}
 
-Session::~Session() {}
+Session::~Session()
+{
+}
 
 tcp::socket &Session::socket()
 {
