@@ -2,6 +2,7 @@
 #define CONFIG_MANAGER_H
 
 #include "config_parser.h"
+#include <string>
 
 // Class to manage configuration extraction and validation
 class ConfigManager

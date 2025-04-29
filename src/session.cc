@@ -1,17 +1,16 @@
 #include "session.h"
 #include <iostream>
-#include "echo_response_handler.h"
 
 Session::Session(boost::asio::io_service &io_service)
-    : socket_(io_service),
+    : socket_(io_service), 
       should_close_connection_(false),
       response_handler_(std::make_shared<EchoResponseHandler>())
 {
 }
 
-Session::Session(boost::asio::io_service &io_service,
+Session::Session(boost::asio::io_service &io_service, 
                  std::shared_ptr<IResponseHandler> response_handler)
-    : socket_(io_service),
+    : socket_(io_service), 
       should_close_connection_(false),
       response_handler_(response_handler)
 {
@@ -95,4 +94,30 @@ void Session::handle_write(const boost::system::error_code &error)
     {
         destroy();
     }
+}
+
+// Implementation of EchoResponseHandler
+std::string EchoResponseHandler::generateResponse(const std::string& request, bool& should_close) {
+    // Check if the request header contains "Connection: close"
+    should_close = (request.find("Connection: close") != std::string::npos);
+
+    // Create HTTP response with the echoed request
+    std::string response = "HTTP/1.1 200 OK\r\n";
+    response += "Content-Type: text/plain\r\n";
+
+    // Echo the connection header based on client request
+    if (should_close)
+    {
+        response += "Connection: close\r\n";
+    }
+    else
+    {
+        response += "Connection: keep-alive\r\n";
+    }
+
+    response += "Content-Length: " + std::to_string(request.length()) + "\r\n";
+    response += "\r\n";  // Empty line to separate headers from body
+    response += request;  // Echo the entire request as the body
+    
+    return response;
 }
