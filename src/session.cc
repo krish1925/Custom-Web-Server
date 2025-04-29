@@ -78,9 +78,14 @@ void Session::handle_read(const boost::system::error_code &ec,
 
     Response resp = handler->handle(req);
 
-    boost::asio::async_write(socket_, boost::asio::buffer(resp.data),
-                             boost::bind(&Session::handle_write, this,
-                                         boost::asio::placeholders::error));
+    auto outbound = std::make_shared<std::string>(resp.to_string());
+
+    boost::asio::async_write(
+        socket_, boost::asio::buffer(*outbound),
+        [this, outbound](const boost::system::error_code& ec, std::size_t)
+        {
+            handle_write(ec);
+        });
 }
 
 void Session::handle_write(const boost::system::error_code &ec)
