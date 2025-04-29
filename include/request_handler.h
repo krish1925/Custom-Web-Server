@@ -1,6 +1,7 @@
 #ifndef REQUEST_HANDLER_H
 #define REQUEST_HANDLER_H
 
+#include "response.h"
 #include <string>
 
 struct Request
@@ -9,11 +10,6 @@ struct Request
     std::string uri;
     std::string method;
     std::string client_ip;
-};
-
-struct Response
-{
-    std::string data;
 };
 
 class IRequestHandler

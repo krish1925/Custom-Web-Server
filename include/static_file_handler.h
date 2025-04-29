@@ -2,6 +2,7 @@
 #define STATIC_FILE_HANDLER_H
 
 #include "request_handler.h" // needs Request / Response / interface
+#include "response.h"
 
 class StaticFileHandler : public IRequestHandler
 {

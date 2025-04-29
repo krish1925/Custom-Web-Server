@@ -44,7 +44,7 @@ target_link_libraries(config_manager_lib
 add_library(handler_lib src/echo_handler.cc src/static_file_handler.cc)
 target_include_directories(handler_lib PUBLIC include)
 
-add_library(server_lib STATIC src/server.cc src/session.cc) # concrete handler
+add_library(server_lib STATIC src/server.cc src/session.cc src/response.cc) # concrete handler
 target_link_libraries(server_lib
     PRIVATE config_manager_lib
     PRIVATE Boost::system)
