@@ -48,9 +48,10 @@ void ConfigManager::loadRoutes()
 
     for (const auto &st : config_.statements_)
     {
-        if (st->tokens_.size() < 3 || st->tokens_[0] != "handler")
+        if (st->tokens_.size() < 3 || st->tokens_[0] != "handler") {
             BOOST_LOG_TRIVIAL(debug) << "[ConfigManager] Skipping directive: " << st->ToString(0);
             continue;
+        }
 
         std::string prefix = st->tokens_[1];
         std::string type = st->tokens_[2];
@@ -79,9 +80,10 @@ void ConfigManager::loadRoutes()
         }
         routes_.push_back({prefix, h});
     }
-    if (routes_.empty())
+    if (routes_.empty()) {
         BOOST_LOG_TRIVIAL(error) << "[ConfigManager] No handler directives found";
         throw std::runtime_error("No handler directives found");
+    }
 
     std::sort(routes_.begin(), routes_.end(),
               [](auto &a, auto &b)

@@ -104,7 +104,7 @@ void Session::handle_read(const boost::system::error_code &ec,
 
     boost::asio::async_write(
         socket_, boost::asio::buffer(*outbound),
-        [this, outbound](const boost::system::error_code &ec, std::size_t)
+        [this, outbound](const boost::system::error_code& ec, std::size_t)
         {
             handle_write(ec);
         });
