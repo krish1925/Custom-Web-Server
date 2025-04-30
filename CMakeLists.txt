@@ -52,7 +52,7 @@ target_link_libraries(config_manager_lib
 add_library(handler_lib src/echo_handler.cc src/static_file_handler.cc)
 target_include_directories(handler_lib PUBLIC include)
 
-add_library(server_lib STATIC src/server.cc src/session.cc src/response.cc) # concrete handler
+add_library(server_lib STATIC src/server.cc src/session.cc src/response.cc)
 target_link_libraries(server_lib
     PRIVATE config_manager_lib
     PRIVATE Boost::system
@@ -128,6 +128,19 @@ target_link_libraries(server_test
 )
 gtest_discover_tests(server_test)
 
+add_executable(static_file_handler_test tests/static_file_handler_test.cc)
+target_link_libraries(static_file_handler_test
+  PRIVATE
+    handler_lib
+    Boost::system
+    gtest
+    gtest_main
+    logging
+)
+gtest_discover_tests(static_file_handler_test
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
+
 # Integration tests
 add_executable(integration_test tests/integration/integration_tests.cc)
 target_link_libraries(integration_test
@@ -148,7 +161,7 @@ gtest_discover_tests(integration_test
 include(cmake/CodeCoverageReportConfig.cmake)
 generate_coverage_report(
   TARGETS server_lib config_parser_lib config_manager_lib
-  TESTS webserver_test config_manager_test session_test config_parser_test server_test integration_test
+  TESTS webserver_test config_manager_test session_test config_parser_test server_test static_file_handler_test integration_test
 )
 
 
