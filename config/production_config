@@ -1,3 +1,1 @@
 port 80;
-handler /echo Echo;
-handler /static Static /usr/src/projects/vibe-code-only/asset;
