@@ -6,7 +6,7 @@
 
 Session::Session(boost::asio::io_service &io, const ConfigManager &config)
     : socket_(io), cfg_(config),
-      default_echo_(std::make_shared<EchoHandler>()) 
+      default_echo_(std::make_shared<EchoHandler>())
 {
     BOOST_LOG_TRIVIAL(info) << "[Session] Constructed (default handler)";
 }
@@ -14,7 +14,7 @@ Session::Session(boost::asio::io_service &io, const ConfigManager &config)
 Session::Session(boost::asio::io_service &io_service, const ConfigManager &config,
                  std::shared_ptr<IResponseHandler> response_handler)
     : socket_(io_service), cfg_(config), default_echo_(std::make_shared<EchoHandler>()),
-      response_handler_(response_handler) 
+      response_handler_(response_handler)
 {
     BOOST_LOG_TRIVIAL(info) << "[Session] Constructed (custom handler)";
 }
@@ -45,11 +45,11 @@ void Session::handle_read(const boost::system::error_code &ec,
     buffer_.append(data_, n);
 
     BOOST_LOG_TRIVIAL(debug) << "[Session] Received " << n << " bytes";
-    BOOST_LOG_TRIVIAL(debug) << "[Session] Chunk: \"" 
+    BOOST_LOG_TRIVIAL(debug) << "[Session] Chunk: \""
                              << std::string(data_, data_ + n)
                              << "\"";
-    BOOST_LOG_TRIVIAL(debug) << "[Session] Buffer now: \"" 
-                             << buffer_ 
+    BOOST_LOG_TRIVIAL(debug) << "[Session] Buffer now: \""
+                             << buffer_
                              << "\"";
 
     if (buffer_.find("\r\n\r\n") == std::string::npos)
@@ -71,7 +71,7 @@ void Session::handle_read(const boost::system::error_code &ec,
     BOOST_LOG_TRIVIAL(info) << "[Session] Version:" << version;
 
     should_close_ = (buffer_.find("Connection: close") != std::string::npos);
-    BOOST_LOG_TRIVIAL(info) << "[Session] Connection-close flag: " 
+    BOOST_LOG_TRIVIAL(info) << "[Session] Connection-close flag: "
                             << (should_close_ ? "true" : "false");
 
     Request req;
@@ -86,7 +86,7 @@ void Session::handle_read(const boost::system::error_code &ec,
     catch (const std::exception &e)
     {
         req.client_ip = "unknown";
-        BOOST_LOG_TRIVIAL(warning) << "[Session] Failed to retrieve client IP: " 
+        BOOST_LOG_TRIVIAL(warning) << "[Session] Failed to retrieve client IP: "
                                    << e.what();
     }
 
@@ -102,14 +102,14 @@ void Session::handle_read(const boost::system::error_code &ec,
     auto handler = handler_opt ? *handler_opt : default_echo_;
 
     Response resp = handler->handle(req);
-    BOOST_LOG_TRIVIAL(debug) << "[Session] Generated response of size " 
-                             << resp.data.size() << " bytes";
+    BOOST_LOG_TRIVIAL(debug) << "[Session] Generated response of size "
+                             << resp.body.size() << " bytes";
 
     auto outbound = std::make_shared<std::string>(resp.to_string());
 
     boost::asio::async_write(
         socket_, boost::asio::buffer(*outbound),
-        [this, outbound](const boost::system::error_code& ec, std::size_t)
+        [this, outbound](const boost::system::error_code &ec, std::size_t)
         {
             handle_write(ec);
         });
@@ -143,7 +143,7 @@ void Session::handle_write(const boost::system::error_code &ec)
 std::string EchoResponseHandler::generateResponse(const std::string &request, bool &should_close)
 {
     BOOST_LOG_TRIVIAL(info)
-          << "[EchoResponseHandler] Generating echo response";
+        << "[EchoResponseHandler] Generating echo response";
 
     // Check if the request header contains "Connection: close"
     should_close = (request.find("Connection: close") != std::string::npos);
