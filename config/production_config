@@ -1,1 +1,4 @@
 port 80;
+handler /echo Echo;
+handler /static1 Static /var/www/static/location1;
+handler /static2 Static /var/www/static/location2;
