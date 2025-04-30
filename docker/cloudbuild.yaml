@@ -30,15 +30,4 @@ steps:
     '-t', 'vibe-code-only:coverage',
     '.'
   ]
-# Add deployment step
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  args:
-  - '-c'
-  - |
-    gcloud compute ssh web-server --zone=us-west1-a --command="
-    docker pull gcr.io/$PROJECT_ID/vibe-code-only:latest && 
-    docker stop klt-web-server-izef || true && 
-    docker rm klt-web-server-izef || true && 
-    docker run -d --name klt-web-server-izef gcr.io/$PROJECT_ID/vibe-code-only:latest"
 images: ['gcr.io/$PROJECT_ID/vibe-code-only:base', 'gcr.io/$PROJECT_ID/vibe-code-only:latest']
