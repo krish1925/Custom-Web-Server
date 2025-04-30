@@ -25,8 +25,6 @@ COPY --from=builder /usr/src/project/build/bin/webserver /usr/local/bin/webserve
 # Copy the config file from the project
 COPY --from=builder /usr/src/project/config/production_config /etc/webserver/config
 
-COPY --from=builder /usr/src/project/assets /usr/local/share/webserver/assets
-
 # Expose both standard HTTP ports
 EXPOSE 80
 
