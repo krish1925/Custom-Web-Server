@@ -26,17 +26,6 @@ Server::Server(boost::asio::io_service &io,
     start_accept();
 }
 
-Server::Server(boost::asio::io_service &io_service,
-               short port,
-               std::shared_ptr<IResponseHandler> response_handler)
-    : io_service_(io_service),
-      acceptor_(io_service, tcp::endpoint(tcp::v4(), port)),
-      response_handler_(response_handler)
-{
-    BOOST_LOG_TRIVIAL(info) << "[Server] (response handler) Starting on port " << port;
-    start_accept();
-}
-
 void Server::start_accept()
 {
     BOOST_LOG_TRIVIAL(debug) << "[Server] Waiting for incoming connection";
@@ -49,10 +38,13 @@ void Server::start_accept()
 void Server::handle_accept(Session *s,
                            const boost::system::error_code &ec)
 {
-    if (!ec) {
+    if (!ec)
+    {
         BOOST_LOG_TRIVIAL(info) << "[Server] Connection accepted";
         s->start();
-    } else {
+    }
+    else
+    {
         BOOST_LOG_TRIVIAL(error) << "[Server] Accept error: " << ec.message();
         delete s;
     }

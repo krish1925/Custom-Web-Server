@@ -12,9 +12,8 @@ Session::Session(boost::asio::io_service &io, const ConfigManager &config)
 }
 
 Session::Session(boost::asio::io_service &io_service, const ConfigManager &config,
-                 std::shared_ptr<IResponseHandler> response_handler)
-    : socket_(io_service), cfg_(config), default_echo_(std::make_shared<EchoHandler>()),
-      response_handler_(response_handler)
+                 std::shared_ptr<IRequestHandler> request_handler)
+    : socket_(io_service), cfg_(config), default_echo_(std::make_shared<EchoHandler>())
 {
     BOOST_LOG_TRIVIAL(info) << "[Session] Constructed (custom handler)";
 }
@@ -70,10 +69,6 @@ void Session::handle_read(const boost::system::error_code &ec,
     BOOST_LOG_TRIVIAL(info) << "[Session] URI:    " << uri;
     BOOST_LOG_TRIVIAL(info) << "[Session] Version:" << version;
 
-    should_close_ = (buffer_.find("Connection: close") != std::string::npos);
-    BOOST_LOG_TRIVIAL(info) << "[Session] Connection-close flag: "
-                            << (should_close_ ? "true" : "false");
-
     Request req;
     req.raw = buffer_;
     req.uri = uri;
@@ -101,7 +96,7 @@ void Session::handle_read(const boost::system::error_code &ec,
     }
     auto handler = handler_opt ? *handler_opt : default_echo_;
 
-    Response resp = handler->handle(req);
+    Response resp = handler->handle(req, should_close_);
     BOOST_LOG_TRIVIAL(debug) << "[Session] Generated response of size "
                              << resp.body.size() << " bytes";
 
@@ -139,32 +134,4 @@ void Session::handle_write(const boost::system::error_code &ec)
                             boost::bind(&Session::handle_read, this,
                                         boost::asio::placeholders::error,
                                         boost::asio::placeholders::bytes_transferred));
-}
-std::string EchoResponseHandler::generateResponse(const std::string &request, bool &should_close)
-{
-    BOOST_LOG_TRIVIAL(info)
-        << "[EchoResponseHandler] Generating echo response";
-
-    // Check if the request header contains "Connection: close"
-    should_close = (request.find("Connection: close") != std::string::npos);
-
-    // Create HTTP response with the echoed request
-    std::string response = "HTTP/1.1 200 OK\r\n";
-    response += "Content-Type: text/plain\r\n";
-
-    // Echo the connection header based on client request
-    if (should_close)
-    {
-        response += "Connection: close\r\n";
-    }
-    else
-    {
-        response += "Connection: keep-alive\r\n";
-    }
-
-    response += "Content-Length: " + std::to_string(request.length()) + "\r\n";
-    response += "\r\n";  // Empty line to separate headers from body
-    response += request; // Echo the entire request as the body
-
-    return response;
 }

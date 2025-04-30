@@ -32,16 +32,6 @@ public:
     bool start_accept_called;
 };
 
-class MockResponseHandlerForServer : public IResponseHandler
-{
-public:
-    std::string generateResponse(const std::string &request, bool &should_close) override
-    {
-        should_close = false;
-        return "mock response";
-    }
-};
-
 class TestableServer : public Server
 {
 public:
@@ -70,13 +60,11 @@ class ServerTest : public ::testing::Test
 {
 protected:
     boost::asio::io_service io_service_;
-    std::shared_ptr<MockResponseHandlerForServer> mock_handler_; // Mock response handler for testing
-    std::unique_ptr<ConfigManager> config_manager_;              // Dummy config manager for testing
-    NginxConfig default_config_;                                 // Empty config for testing
+    std::unique_ptr<ConfigManager> config_manager_; // Dummy config manager for testing
+    NginxConfig default_config_;                    // Empty config for testing
 
     void SetUp() override
     {
-        mock_handler_ = std::make_shared<MockResponseHandlerForServer>();
         config_manager_ = std::make_unique<ConfigManager>(default_config_);
     }
 };
@@ -91,9 +79,9 @@ TEST_F(ServerTest, InitializationWithValidPort)
 TEST_F(ServerTest, HandleAcceptErrorPath)
 {
     short port = 8081;
-    TestableServer test_server(io_service_, port, mock_handler_);
+    TestableServer test_server(io_service_, port, *config_manager_);
 
-    Session *dummy_session = new Session(io_service_, *config_manager_, mock_handler_); // Create dummy session for testing
+    Session *dummy_session = new Session(io_service_, *config_manager_); // Create dummy session for testing
     boost::system::error_code ec = boost::asio::error::operation_aborted;
 
     test_server.handle_accept(dummy_session, ec); // Call handle_accept with dummy session and error code

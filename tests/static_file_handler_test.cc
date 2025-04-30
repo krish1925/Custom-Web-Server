@@ -37,6 +37,8 @@ protected:
         // Clean up test files after each test
         fs::remove_all("test_root");
     }
+
+    bool should_close = true;
 };
 
 // Test successful file serving
@@ -45,12 +47,13 @@ TEST_F(StaticFileHandlerTest, ServesExistingFile)
     StaticFileHandler handler("/static", "test_root");
     Request req;
     req.uri = "/static/test.txt";
+    Response res = handler.handle(req, should_close);
 
-    Response res = handler.handle(req);
-
+    EXPECT_FALSE(should_close); // Connection should not be closed
     EXPECT_EQ(200, res.status_code);
     EXPECT_EQ("OK", res.status_message);
     EXPECT_EQ("text/plain", res.headers["Content-Type"]);
+    EXPECT_EQ("keep-alive", res.headers["Connection"]);
     EXPECT_EQ("This is a test text file", res.body);
     EXPECT_EQ(std::to_string(res.body.size()), res.headers["Content-Length"]);
 }
@@ -63,13 +66,15 @@ TEST_F(StaticFileHandlerTest, CorrectMimeTypes)
     // HTML file
     Request html_req;
     html_req.uri = "/static/test.html";
-    Response html_res = handler.handle(html_req);
+    Response html_res = handler.handle(html_req, should_close);
+
     EXPECT_EQ("text/html", html_res.headers["Content-Type"]);
 
     // JavaScript file
     Request js_req;
     js_req.uri = "/static/script.js";
-    Response js_res = handler.handle(js_req);
+    Response js_res = handler.handle(js_req, should_close);
+
     EXPECT_EQ("application/javascript", js_res.headers["Content-Type"]);
 }
 
@@ -80,7 +85,7 @@ TEST_F(StaticFileHandlerTest, NestedDirectoryAccess)
     Request req;
     req.uri = "/static/subdir/nested.txt";
 
-    Response res = handler.handle(req);
+    Response res = handler.handle(req, should_close);
 
     EXPECT_EQ(200, res.status_code);
     EXPECT_EQ("Nested file content", res.body);
@@ -93,7 +98,7 @@ TEST_F(StaticFileHandlerTest, UrlDoesntMatchPrefix)
     Request req;
     req.uri = "/files/test.txt"; // Wrong prefix
 
-    Response res = handler.handle(req);
+    Response res = handler.handle(req, should_close);
 
     EXPECT_EQ(400, res.status_code);
     EXPECT_EQ("Bad Request", res.status_message);
@@ -107,7 +112,7 @@ TEST_F(StaticFileHandlerTest, NonExistentFile)
     Request req;
     req.uri = "/static/doesnotexist.txt";
 
-    Response res = handler.handle(req);
+    Response res = handler.handle(req, should_close);
 
     EXPECT_EQ(404, res.status_code);
     EXPECT_EQ("Not Found", res.status_message);
@@ -120,7 +125,7 @@ TEST_F(StaticFileHandlerTest, DirectoryAccess)
     Request req;
     req.uri = "/static/subdir";
 
-    Response res = handler.handle(req);
+    Response res = handler.handle(req, should_close);
 
     EXPECT_EQ(404, res.status_code);
     EXPECT_EQ("Not Found", res.status_message);
@@ -138,7 +143,7 @@ TEST_F(StaticFileHandlerTest, PathTraversalPrevention)
     Request req;
     req.uri = "/static/../outside.txt"; // Try to access outside the root
 
-    Response res = handler.handle(req);
+    Response res = handler.handle(req, should_close);
 
     EXPECT_EQ(404, res.status_code);
 
@@ -154,7 +159,7 @@ TEST_F(StaticFileHandlerTest, PrefixNormalization)
     Request req;
     req.uri = "/api/test.txt";
 
-    Response res = handler.handle(req);
+    Response res = handler.handle(req, should_close);
 
     EXPECT_EQ(200, res.status_code);
     EXPECT_EQ("This is a test text file", res.body);
@@ -167,7 +172,7 @@ TEST_F(StaticFileHandlerTest, EmptyPath)
     Request req;
     req.uri = "/static/"; // No specific file
 
-    Response res = handler.handle(req);
+    Response res = handler.handle(req, should_close);
 
     EXPECT_EQ(404, res.status_code);
 }

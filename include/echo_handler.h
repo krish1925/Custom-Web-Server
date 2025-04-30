@@ -9,7 +9,7 @@ public:
     EchoHandler() = default;
     ~EchoHandler() = default;
 
-    Response handle(const Request &req) override;
+    Response handle(const Request &req, bool &should_close) override;
 };
 
 #endif // ECHO_HANDLER_H

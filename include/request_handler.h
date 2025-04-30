@@ -15,7 +15,7 @@ struct Request
 class IRequestHandler
 {
 public:
-    virtual Response handle(const Request &) = 0;
+    virtual Response handle(const Request &req, bool &should_close) = 0;
     virtual ~IRequestHandler() = default;
 };
 
