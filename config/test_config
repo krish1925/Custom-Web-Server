@@ -1,0 +1,3 @@
+port 8080;
+handler /echo Echo;
+handler /static Static /usr/src/project/asset/location1; 
