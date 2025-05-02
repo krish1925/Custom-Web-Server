@@ -28,10 +28,17 @@ enable_testing()
 
 # Boost (static libs)
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.50 REQUIRED COMPONENTS system)
+find_package(Boost 1.50 REQUIRED COMPONENTS system log log_setup regex)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
 include_directories(include)
+
+add_library(logging STATIC src/logging.cc)
+target_link_libraries(logging PUBLIC
+    Boost::log_setup
+    Boost::log
+    Boost::regex
+)
 
 # Core libraries
 add_library(config_parser_lib src/config_parser.cc)
@@ -39,15 +46,18 @@ add_library(config_parser_lib src/config_parser.cc)
 add_library(config_manager_lib src/config_manager.cc)
 target_link_libraries(config_manager_lib
     PUBLIC  handler_lib
-    PRIVATE config_parser_lib)
+    PRIVATE config_parser_lib
+)
 
 add_library(handler_lib src/echo_handler.cc src/static_file_handler.cc)
 target_include_directories(handler_lib PUBLIC include)
 
-add_library(server_lib STATIC src/server.cc src/session.cc src/response.cc) # concrete handler
+add_library(server_lib STATIC src/server.cc src/session.cc src/response.cc)
 target_link_libraries(server_lib
     PRIVATE config_manager_lib
-    PRIVATE Boost::system)
+    PRIVATE Boost::system
+    PRIVATE logging
+)
 
 # Main executable
 add_executable(webserver src/_main.cc)
@@ -69,6 +79,7 @@ target_link_libraries(webserver_test
     Boost::system
     gtest
     gtest_main
+    logging
 )
 gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
@@ -79,6 +90,7 @@ target_link_libraries(config_manager_test
     config_manager_lib
     gtest
     gtest_main
+    logging
 )
 gtest_discover_tests(config_manager_test)
 
@@ -100,6 +112,7 @@ target_link_libraries(config_parser_test
     config_parser_lib
     gtest
     gtest_main
+    logging
 )
 gtest_discover_tests(config_parser_test
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
@@ -115,6 +128,19 @@ target_link_libraries(server_test
 )
 gtest_discover_tests(server_test)
 
+add_executable(static_file_handler_test tests/static_file_handler_test.cc)
+target_link_libraries(static_file_handler_test
+  PRIVATE
+    handler_lib
+    Boost::system
+    gtest
+    gtest_main
+    logging
+)
+gtest_discover_tests(static_file_handler_test
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
+
 # Integration tests
 add_executable(integration_test tests/integration/integration_tests.cc)
 target_link_libraries(integration_test
@@ -125,6 +151,7 @@ target_link_libraries(integration_test
     Boost::system
     gtest
     gtest_main
+    logging
 )
 gtest_discover_tests(integration_test
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration
@@ -134,7 +161,7 @@ gtest_discover_tests(integration_test
 include(cmake/CodeCoverageReportConfig.cmake)
 generate_coverage_report(
   TARGETS server_lib config_parser_lib config_manager_lib
-  TESTS webserver_test config_manager_test session_test config_parser_test server_test integration_test
+  TESTS webserver_test config_manager_test session_test config_parser_test server_test static_file_handler_test integration_test
 )
 
 

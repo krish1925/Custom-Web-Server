@@ -18,7 +18,7 @@ public:
 
     int getPort() const;
     void loadRoutes();
-    std::optional<std::shared_ptr<IRequestHandler>> matchHandler(const std::string &uri) const;
+    virtual std::optional<std::shared_ptr<IRequestHandler>> matchHandler(const std::string &uri) const;
 
     const std::vector<RouteEntry> &routes() const;
 

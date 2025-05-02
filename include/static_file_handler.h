@@ -12,7 +12,7 @@ public:
 
     ~StaticFileHandler() = default;
 
-    Response handle(const Request &req) override;
+    Response handle(const Request &req, bool &should_close) override;
 
 private:
     std::string prefix_;

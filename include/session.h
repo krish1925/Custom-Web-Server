@@ -8,30 +8,13 @@
 
 using boost::asio::ip::tcp;
 
-class IResponseHandler
-{
-public:
-    virtual ~IResponseHandler() {}
-
-    // generate HTTP response from request
-    virtual std::string generateResponse(const std::string &request, bool &should_close) = 0;
-};
-
-// default implementation of response handler
-class EchoResponseHandler : public IResponseHandler
-{
-public:
-    // generate a simple echo response
-    std::string generateResponse(const std::string &request, bool &should_close) override;
-};
-
 class Session
 {
 public:
     Session(boost::asio::io_service &io, const ConfigManager &config);
     // Constructor with dependency injection for testing
     Session(boost::asio::io_service &io_service, const ConfigManager &config,
-            std::shared_ptr<IResponseHandler> response_handler);
+            std::shared_ptr<IRequestHandler> request_handler);
 
     virtual tcp::socket &socket();
     virtual void start();
@@ -55,7 +38,6 @@ protected:
 
     const ConfigManager &cfg_;
     std::shared_ptr<IRequestHandler> default_echo_;
-    std::shared_ptr<IResponseHandler> response_handler_;
 };
 
 #endif

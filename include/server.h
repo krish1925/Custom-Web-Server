@@ -14,9 +14,6 @@ public:
     Server(boost::asio::io_service &io_service, short port,
            std::shared_ptr<IRequestHandler> default_handler);
 
-    Server(boost::asio::io_service &io_service, short port,
-           std::shared_ptr<IResponseHandler> response_handler);
-
 protected:
     virtual void start_accept();
     virtual void handle_accept(Session *s, const boost::system::error_code &ec);
@@ -27,7 +24,6 @@ protected:
     const ConfigManager *cfg_{nullptr};
 
     std::shared_ptr<IRequestHandler> default_handler_;
-    std::shared_ptr<IResponseHandler> response_handler_;
 };
 
 #endif // SERVER_H

@@ -1,24 +1,26 @@
 #include <iostream>
 #include <boost/asio.hpp>
+#include <csignal>
+#include "logging.h"
 #include "server.h"
 #include "config_parser.h"
 #include "config_manager.h"
 
 int main(int argc, char *argv[])
 {
-    try
-    {
-        if (argc != 2)
-        {
-            std::cerr << "Usage: webserver <path to config file>\n";
+    logging::init();
+    BOOST_LOG_TRIVIAL(info) << "=== server start ===";
+
+    try {
+        if (argc != 2) {
+            BOOST_LOG_TRIVIAL(fatal) << "Usage: webserver <path to config file>";
             return 1;
         }
 
         NginxConfigParser parser;
         NginxConfig config;
-        if (!parser.Parse(argv[1], &config))
-        {
-            std::cerr << "Failed to parse config file: " << argv[1] << "\n";
+        if (!parser.Parse(argv[1], &config)) {
+            BOOST_LOG_TRIVIAL(fatal) << "Failed to parse config file: " << argv[1];
             return 1;
         }
 
@@ -27,12 +29,18 @@ int main(int argc, char *argv[])
         cfg.loadRoutes();
 
         boost::asio::io_service io;
+
+        boost::asio::signal_set signals(io, SIGINT, SIGTERM);
+        signals.async_wait([&](auto /*unused*/, auto /*unused*/) {
+            BOOST_LOG_TRIVIAL(info) << "=== server shut-down ===";
+            io.stop();
+        });
+
         Server server(io, static_cast<short>(port), cfg);
         io.run();
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Exception: " << e.what() << '\n';
+
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(fatal) << "Exception: " << e.what();
         return 1;
     }
     return 0;

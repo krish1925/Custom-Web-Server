@@ -28,6 +28,18 @@ COPY --from=builder /usr/src/project/config/production_config /etc/webserver/con
 # Expose both standard HTTP ports
 EXPOSE 80
 
+# Create logs directory
+RUN mkdir -p /var/log/webserver && \
+    chmod 777 /var/log/webserver
+
+# Set environment variable for log directory
+ENV LOG_DIR=/var/log/webserver
+
+RUN mkdir -p /var/www/static
+# Copy static assets from local machine to container
+COPY --from=builder /usr/src/project/asset /var/www/static
+RUN chmod -R 755 /var/www/static
+
 # Use ENTRYPOINT to specify the binary name
 ENTRYPOINT ["/usr/local/bin/webserver"]
 
