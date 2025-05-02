@@ -190,10 +190,10 @@ kubectl top pod <pod-name>
 4. Push to the branch
 5. Create a Pull Request
 
-
 ## Authors
 
-Alexander West
-Krish Patel 
-William Wu
-Guanhua Ji
+- Alexander West
+- Krish Patel
+- William Wu
+- Guanhua Ji
+
