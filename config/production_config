@@ -1,4 +1,8 @@
 port 80;
 handler /echo Echo;
+<<<<<<< Updated upstream
 handler /static1 Static /var/www/static/location1;
 handler /static2 Static /var/www/static/location2;
+=======
+handler /static Static /usr/src/projects/vibe-code-only/asset;
+>>>>>>> Stashed changes
