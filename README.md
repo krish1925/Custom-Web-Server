@@ -84,12 +84,103 @@ The server can be configured using the configuration files in the `config/` dire
 
 ## Docker Deployment
 
-The project includes Docker support for containerized deployment:
+The project includes Docker support for containerized deployment with a multi-stage build process:
 
-- `Dockerfile`: Main production image
-- `base.Dockerfile`: Base image with dependencies
-- `coverage.Dockerfile`: Image for running coverage tests
-- `cloudbuild.yaml`: Google Cloud Build configuration
+### Local Docker Operations
+
+1. Build the base image:
+```bash
+docker build -f docker/base.Dockerfile -t vibe-code-only:base .
+```
+
+2. Build the production image:
+```bash
+docker build -f docker/Dockerfile -t vibe-code-only:latest .
+```
+
+3. Run the container:
+```bash
+docker run --rm -p 80:80 vibe-code-only:latest
+```
+
+4. Check running containers:
+```bash
+docker ps
+```
+
+5. View container logs:
+```bash
+docker logs <container_id>
+```
+
+### Google Cloud Deployment
+
+The project is configured for Google Cloud Build and Container Registry:
+
+1. Set up Google Cloud project:
+```bash
+gcloud config set project <your-project-id>
+```
+
+2. Enable required APIs:
+```bash
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable containerregistry.googleapis.com
+```
+
+3. Configure Cloud Build triggers:
+   - Connect your GitHub repository to Cloud Build
+   - Set up triggers for:
+     - Push to main branch
+     - Pull request creation
+     - Tag creation
+
+4. Build and deploy using Cloud Build:
+```bash
+gcloud builds submit --config=docker/cloudbuild.yaml
+```
+
+### Container Configuration
+
+The production container includes:
+- Web server binary at `/usr/local/bin/webserver`
+- Configuration file at `/etc/webserver/config`
+- Static assets at `/var/www/static`
+- Log directory at `/var/log/webserver`
+
+### Environment Variables
+
+- `LOG_DIR`: Directory for log files (default: `/var/log/webserver`)
+- Configuration can be overridden at runtime by mounting a custom config file
+
+### Cloud Build Pipeline
+
+The Cloud Build pipeline (`cloudbuild.yaml`) includes:
+1. Pulling cached base image
+2. Building and caching base image
+3. Building production image
+4. Building coverage test image
+5. Pushing images to Container Registry
+
+### Monitoring and Logging
+
+1. View container logs:
+```bash
+docker logs <container_id>
+docker cp <container_id:/logs ./logs_from_container
+cd <path to logs_from_container>
+cat logs/<date of log>.log
+```
+
+2. Access logs in production:
+```bash
+kubectl logs <pod-name> -n <namespace>
+```
+
+3. Monitor container metrics:
+```bash
+kubectl top pod <pod-name>
+```
 
 ## Contributing
 
@@ -99,10 +190,10 @@ The project includes Docker support for containerized deployment:
 4. Push to the branch
 5. Create a Pull Request
 
-## License
-
-[Add your license information here]
 
 ## Authors
 
-[Add author information here] 
+Alexander West
+Krish Patel 
+William Wu
+Guanhua Ji
