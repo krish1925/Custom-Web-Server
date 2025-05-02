@@ -1,4 +1,4 @@
-# Vibe Web Server
+# High Performance Web Server
 
 A high-performance, configurable web server built with C++ and CMake. This project implements a robust HTTP server with support for static file serving, configurable handlers, and comprehensive test coverage.
 
